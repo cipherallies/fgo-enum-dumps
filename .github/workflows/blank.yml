@@ -39,6 +39,7 @@ jobs:
           tag_name: ${{ env.VERSION }}
           release_name: ${{ env.VERSION }}
           body: ${{ env.VERSION }}
+          commitish: e5011adb623f7477102ff4d2c71e54bb6ff74c1d
       - name: Upload new APK
         if: ${{ env.LATEST > env.CURRENT }}
         id: upload-release-asset 

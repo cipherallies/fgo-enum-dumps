@@ -1,0 +1,40 @@
+name: Update F/GO enums
+
+on:
+  workflow_dispatch:
+  release:
+    types: [edited]
+
+jobs:
+  build:
+    name: Extract enums
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download newest APK
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          file: "com.aniplex.fategrandorder.apk"
+          target: "current.apk"
+      - name: Prepare il2cppdumper
+        run: |
+          git clone --depth 1 https://github.com/Perfare/Il2CppDumper.git;
+          cd Il2CppDumper;
+          dotnet publish -o dist/ -c Release -f netcoreapp3.1;
+      - name: Prepare enum extractor
+        run: |
+          git clone https://github.com/minhducsun2002/cil-enum-extractor;
+          cd cil-enum-extractor
+          dotnet publish -o dist/ -c Release
+      - name: Extract necessary files from APK
+        run: |
+          unzip current.apk lib/arm64-v8a/libil2cpp.so assets/bin/Data/Managed/Metadata/global-metadata.dat
+          shopt -s globstar;
+          mv ./**/libil2cpp.so .; mv ./**/global-metadata.dat .;
+          mkdir -p ./out;
+      - name: Dump enums from assemblies
+        run: |
+          cp ./Il2CppDumper/Il2CppDumper/config.json ./Il2CppDumper/dist/config.json
+          sudo apt-get -qq install moreutils >/dev/null
+          jq '.RequireAnyKey = false' ./Il2CppDumper/dist/config.json | sponge './Il2CppDumper/dist/config.json'
+          ./Il2CppDumper/dist/Il2CppDumper ./libil2cpp.so ./global-metadata.dat ./out;
+          ./cil-enum-extractor/dist/EnumExtractor ./out/DummyDll/Assembly-CSharp.dll;

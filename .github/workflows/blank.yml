@@ -1,0 +1,52 @@
+name: Update F/GO
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+
+jobs:
+  build:
+    name: Check for F/GO updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install necessary tools
+        run: sudo apt install libxml2-utils aapt
+      - name: Download current APK
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          file: "com.aniplex.fategrandorder.apk"
+          target: "current.apk"
+      - name: Download latest APK
+        run: curl --silent 'https://apkcombo.com/fate-grand-order/com.aniplex.fategrandorder/download/apk' | xmllint --html --xpath 'string(/html/body/section/div/div/div[1]/div[2]/div[2]/a/@href)' - 2>/dev/null | xargs wget -O com.aniplex.fategrandorder.apk
+      - name: Checking latest version
+        run: |
+          LATEST="$(aapt dump badging com.aniplex.fategrandorder.apk | grep "versionCode" | sed -e "s/.*versionCode='//" -e "s/' .*//")"
+          CURRENT="$(aapt dump badging current.apk | grep "versionCode" | sed -e "s/.*versionCode='//" -e "s/' .*//")"
+          echo "LATEST=$LATEST" >> $GITHUB_ENV
+          echo "CURRENT=$CURRENT" >> $GITHUB_ENV
+      - name: Read newer version number
+        if: ${{ env.LATEST > env.CURRENT }}
+        run: echo "VERSION=$(aapt dump badging com.aniplex.fategrandorder.apk | grep "versionName" | sed -e "s/.*versionName='//" -e "s/' .*//")" >> $GITHUB_ENV
+      - name: Create new release
+        if: ${{ env.LATEST > env.CURRENT }}
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}
+          body: ${{ env.VERSION }}
+      - name: Upload new APK
+        if: ${{ env.LATEST > env.CURRENT }}
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./com.aniplex.fategrandorder.apk
+          asset_name: com.aniplex.fategrandorder.apk
+          asset_content_type: application/zip

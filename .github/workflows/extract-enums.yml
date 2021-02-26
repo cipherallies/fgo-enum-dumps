@@ -3,7 +3,7 @@ name: Update F/GO enums
 on:
   workflow_dispatch:
   release:
-    types: [edited]
+    types: [created]
 
 jobs:
   build:
@@ -37,4 +37,18 @@ jobs:
           sudo apt-get -qq install moreutils >/dev/null
           jq '.RequireAnyKey = false' ./Il2CppDumper/dist/config.json | sponge './Il2CppDumper/dist/config.json'
           ./Il2CppDumper/dist/Il2CppDumper ./libil2cpp.so ./global-metadata.dat ./out;
-          ./cil-enum-extractor/dist/EnumExtractor ./out/DummyDll/Assembly-CSharp.dll;
+          ./cil-enum-extractor/dist/EnumExtractor ./out/DummyDll/Assembly-CSharp.dll > /tmp/new.cs
+      - name: Commit new changes and push
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          sudo apt-get -qq install aapt >/dev/null
+          VERSION="$(aapt dump badging current.apk | grep "versionName" | sed -e "s/.*versionName='//" -e "s/' .*//")";
+          eval `ssh-agent -s`
+          ssh-add - <<< "$SSH_KEY"
+          git config --global user.name 'cipherallies'
+          git config --global user.email '32769878+minhducsun2002@users.noreply.github.com'
+          git clone git@github.com:minhducsun2002/fgo-enums.git; cd fgo-enums;
+          cp /tmp/new.cs ./Program.cs;
+          git config core.autocrlf input;
+          git add Program.cs; git commit -m "$VERSION"; git push origin;

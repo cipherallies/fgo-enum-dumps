@@ -44,6 +44,7 @@ jobs:
         run: |
           sudo apt-get -qq install aapt >/dev/null
           VERSION="$(aapt dump badging current.apk | grep "versionName" | sed -e "s/.*versionName='//" -e "s/' .*//")";
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           eval `ssh-agent -s`
           ssh-add - <<< "$SSH_KEY"
           git config --global user.name 'cipherallies'
@@ -55,3 +56,10 @@ jobs:
           if ! git diff-index --quiet HEAD; then
             git commit -m "$VERSION"; git push origin;
           fi
+      - name: Publish new exported enums as package
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          cd fgo-enums;
+          dotnet pack "-p:PackageVersion=$VERSION" --configuration Release;
+          dotnet nuget push --api-key "$NUGET_KEY" "bin/Release/fgo-enums.$VERSION.nupkg" --skip-duplicate --source https://api.nuget.org/v3/index.json 

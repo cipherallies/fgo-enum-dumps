@@ -38,6 +38,11 @@ jobs:
           jq '.RequireAnyKey = false' ./Il2CppDumper/dist/config.json | sponge './Il2CppDumper/dist/config.json'
           ./Il2CppDumper/dist/Il2CppDumper ./libil2cpp.so ./global-metadata.dat ./out;
           ./cil-enum-extractor/dist/EnumExtractor ./out/DummyDll/Assembly-CSharp.dll > /tmp/new.cs
+      - name: Upload Assembly-CSharp.dll
+        uses: actions/upload-artifact@v2
+        with:
+          name: Assembly-CSharp.dll
+          path: out/DummyDll/Assembly-CSharp.dll
       - name: Commit new changes and push
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}

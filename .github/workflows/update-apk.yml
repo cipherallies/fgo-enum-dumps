@@ -17,7 +17,7 @@ jobs:
           file: "com.aniplex.fategrandorder.apk"
           target: "current.apk"
       - name: Download latest APK
-        run: curl -L --silent 'https://apkcombo.com/fate-grand-order/com.aniplex.fategrandorder/download/apk' | xmllint --html --xpath 'string(/html/body/section/div/div/div[1]/div[2]/div[2]/a/@href)' - 2>/dev/null | xargs wget -q -O com.aniplex.fategrandorder.apk
+        run: wget https://fgo.square.ovh/apk/com.aniplex.fategrandorder.apk
       - name: Checking latest version
         run: |
           LATEST="$(aapt dump badging com.aniplex.fategrandorder.apk | grep "versionCode" | sed -e "s/.*versionCode='//" -e "s/' .*//")"

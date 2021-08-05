@@ -17,7 +17,7 @@ jobs:
           file: "com.aniplex.fategrandorder.apk"
           target: "current.apk"
       - name: Download latest APK
-        run: wget https://fgo.square.ovh/apk/com.aniplex.fategrandorder.apk
+        run: wget -q https://fgo.square.ovh/apk/com.aniplex.fategrandorder.apk
       - name: Checking latest version
         run: |
           LATEST="$(aapt dump badging com.aniplex.fategrandorder.apk | grep "versionCode" | sed -e "s/.*versionCode='//" -e "s/' .*//")"

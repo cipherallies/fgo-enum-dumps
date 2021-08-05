@@ -3,6 +3,8 @@ name: Update F/GO
 on:
   workflow_dispatch:
   repository_dispatch:
+  schedule:
+  - cron: "0 */6 * * *"
 
 jobs:
   build:

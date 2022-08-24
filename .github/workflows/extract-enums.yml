@@ -36,7 +36,7 @@ jobs:
           cp ./Il2CppDumper/Il2CppDumper/config.json ./Il2CppDumper/dist/config.json
           sudo apt-get -qq install moreutils >/dev/null
           jq '.RequireAnyKey = false' ./Il2CppDumper/dist/config.json | sponge './Il2CppDumper/dist/config.json'
-          ./Il2CppDumper/dist/Il2CppDumper ./libil2cpp.so ./global-metadata.dat ./out;
+          ./Il2CppDumper/dist/Il2CppDumper-x86 ./libil2cpp.so ./global-metadata.dat ./out;
           ./cil-enum-extractor/dist/EnumExtractor ./out/DummyDll/Assembly-CSharp.dll > /tmp/new.cs
       - name: Upload Assembly-CSharp.dll
         uses: actions/upload-artifact@v2

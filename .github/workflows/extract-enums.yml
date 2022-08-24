@@ -19,7 +19,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/Perfare/Il2CppDumper.git;
           cd Il2CppDumper;
-          dotnet publish -o dist/ -c Release -f netcoreapp3.1;
+          dotnet publish -o dist/ -c Release -f net6.0;
       - name: Prepare enum extractor
         run: |
           git clone https://github.com/minhducsun2002/cil-enum-extractor;
